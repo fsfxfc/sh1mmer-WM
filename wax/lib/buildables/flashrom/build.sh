@@ -1,17 +1,41 @@
 #!/usr/bin/env bash
 
-# note: on debian, libftdi1-dev is mutually incompatible with itself for different dpkg architectures, you will need to reinstall the one for the arch you want to build here
-echo "good luck..."
+# note: on debian, libftdi1-dev is mutually incompatible with itself for different dpkg architectures,
+# you will need to reinstall the one for the arch you want to build here
+echo "Cross your fingers..."
 
 set -e
 
 CROSS=
-STRIP=strip
+STRIP="strip"
+PKG_CONFIG="pkg-config"
 CROSSFILE=
-if ! [ -z "$1" ]; then
-	CROSS=("CC=${1}-gcc" "STRIP=${1}-strip" "AR=${1}-ar" "RANLIB=${1}-ranlib" "PKG_CONFIG=${1}-pkg-config")
+
+fail() {
+	printf "%s\n" "$*" >&2
+	exit 1
+}
+
+cleanup() {
+	[ ! -f "$CROSSFILE" ] || rm "$CROSSFILE"
+	trap - EXIT INT
+}
+
+trap 'echo $BASH_COMMAND failed with exit code $?.' ERR
+trap 'cleanup; exit' EXIT
+trap 'echo Abort.; cleanup; exit' INT
+
+if [ -n "$1" ]; then
+	echo "Cross compiling for arch $1"
+	CROSS="--host=${1}"
 	STRIP="${1}-strip"
+	PKG_CONFIG="${1}-pkg-config"
 	CROSSFILE="$(mktemp)"
+	CPU_FAMILY="$(echo "$1" | cut -d- -f1)"
+	case "$CPU_FAMILY" in
+		i[3-6]86) CPU_FAMILY=x86 ;;
+		arm*) CPU_FAMILY=arm ;;
+	esac
 	(
 	echo "[binaries]"
 	echo "c = '${1}-gcc'"
@@ -23,21 +47,39 @@ if ! [ -z "$1" ]; then
 	echo ""
 	echo "[host_machine]"
 	echo "system = '$(echo "$1" | cut -d- -f2)'"
-	echo "cpu_family = '$(echo "$1" | cut -d- -f1)'"
-	echo "cpu = '$(echo "$1" | cut -d- -f1)'"
+	echo "cpu_family = '$CPU_FAMILY'"
+	echo "cpu = '$CPU_FAMILY'"
 	echo "endian = 'little'"
 	) >"$CROSSFILE"
 	CROSSFILE="--cross-file=$CROSSFILE"
 fi
 
+"$PKG_CONFIG" --libs libftdi1 libusb-1.0 libcap zlib >/dev/null || fail "PLEASE INSTALL THESE PACKAGES BEFORE CONTINUING"
+
 rm -rf lib
 mkdir lib
 LIBDIR="$(realpath lib)"
 
+if ! [ -d libjaylink ]; then
+	git clone -n https://gitlab.zapb.de/libjaylink/libjaylink
+	cd libjaylink
+	git checkout fa52ee261ba39f9806ac7cfa658d4f231132ab4a
+	grep -rIl socket_bind | xargs sed -i 's/socket_bind/jl_socket_bind/g'
+	grep -rIl socket_set_option | xargs sed -i 's/socket_set_option/jl_socket_set_option/g'
+else
+	cd libjaylink
+	make clean
+fi
+
+./autogen.sh
+./configure --prefix="$LIBDIR" --enable-static=yes --enable-shared=no "$CROSS"
+make install
+cd ..
+
 if ! [ -d pciutils ]; then
 	git clone -n https://github.com/pciutils/pciutils
 	cd pciutils
-	git checkout v3.11.1
+	git checkout v3.14.0
 else
 	cd pciutils
 	make clean
@@ -53,7 +95,7 @@ cd ..
 if ! [ -d systemd ]; then
 	git clone -n https://github.com/systemd/systemd
 	cd systemd
-	git checkout v255
+	git checkout v257.6
 else
 	cd systemd
 	rm -rf build
@@ -64,27 +106,22 @@ ninja -C build libudev.a devel
 cp build/libudev.a "$LIBDIR/lib"
 mkdir -p "$LIBDIR/lib/pkgconfig"
 cp build/src/libudev/libudev.pc "$LIBDIR/lib/pkgconfig"
-[ ! -f "$CROSSFILE" ] || rm "$CROSSFILE"
 cd ..
 
 if ! [ -d flashrom-repo ]; then
 	git clone -n https://chromium.googlesource.com/chromiumos/third_party/flashrom flashrom-repo
 	cd flashrom-repo
-	git checkout 24513f43e17a29731b13bfe7b2f46969c45b25e0
-	git apply ../flashrom.patch
+	git checkout 1a677e0331eb7e78169d96dbdc557b61f8f05aed
+	git apply ../flashrom2.patch
 else
 	cd flashrom-repo
-	#rm -rf build
-	make clean
+	rm -rf build
 fi
 
 export PKG_CONFIG_PATH="$LIBDIR/lib/pkgconfig"
-
-# fuck this shit, i hate meson
-#export LIBRARY_PATH="$LIBDIR/lib"
-#meson setup -Dbuildtype=release -Dprefer_static=true -Dtests=disabled -Ddefault_programmer_name=internal -Dwerror=false -Dc_args="-I$LIBDIR/include" -Dc_link_args="-static -lcap -lz" "$CROSSFILE" build
-#ninja -C build flashrom
-#"$STRIP" -s build/flashrom
-
-make strip CONFIG_STATIC=yes CONFIG_DEFAULT_PROGRAMMER_NAME=internal CFLAGS="-I$LIBDIR/include" LDFLAGS="-L$LIBDIR/lib" EXTRA_LIBS="-lcap -lz" "${CROSS[@]:-ASDFGHJKLQWER=stfu}"
-cp flashrom ..
+export LIBRARY_PATH="$LIBDIR/lib"
+meson setup -Dbuildtype=release -Ddefault_library=static -Dprefer_static=true -Dtests=disabled -Dprogrammer=all -Ddefault_programmer_name=internal -Dwerror=false -Dc_args="-I$LIBDIR/include" -Dc_link_args="-static -lcap -lz -L$LIBDIR/lib" "$CROSSFILE" build
+ninja -C build flashrom
+"$STRIP" -s build/flashrom
+cp build/flashrom ..
+[ ! -f "$CROSSFILE" ] || rm "$CROSSFILE"

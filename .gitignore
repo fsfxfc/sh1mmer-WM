@@ -25,6 +25,7 @@ wax/lib/buildables/sgdisk/gptfdisk-1.0.10
 wax/lib/buildables/hterm/libapps
 wax/lib/buildables/flashrom/flashrom-repo
 wax/lib/buildables/flashrom/lib
+wax/lib/buildables/flashrom/libjaylink
 wax/lib/buildables/flashrom/pciutils
 wax/lib/buildables/flashrom/systemd
 wax/lib/buildables/ply-image/ply-image-repo
