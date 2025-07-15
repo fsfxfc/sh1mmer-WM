@@ -28,7 +28,7 @@ STATEFUL_DEV="$(echo "$REAL_USB_DEV" | sed 's/[0-9]*$//')"1
 [ -b "$STATEFUL_DEV" ] || fail "Could not determine stateful partition of USB device."
 
 mkdir -p "$STATEFUL_MNT"
-mount "$STATEFUL_DEV" "$STATEFUL_MNT" || fail "Failed to mount $STATEFUL_DEV"
+mount -o ro "$STATEFUL_DEV" "$STATEFUL_MNT" || fail "Failed to mount $STATEFUL_DEV"
 
 rm -rf /init || :
 # cp complains if I dont pass a whole variable

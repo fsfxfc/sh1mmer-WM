@@ -214,8 +214,8 @@ run_task() {
 mkdir -p -m 1777 /run/lock
 
 mkdir -p /mnt/sh1mmer /usr/local
-if mount /dev/disk/by-label/SH1MMER /mnt/sh1mmer >/dev/null 2>&1; then
-	mount --bind /mnt/sh1mmer/chromebrew /usr/local >/dev/null 2>&1 || umount /mnt/sh1mmer
+if mount -o ro /dev/disk/by-label/SH1MMER /mnt/sh1mmer >/dev/null 2>&1; then
+	mount --bind /mnt/sh1mmer/chromebrew /usr/local >/dev/null 2>&1 || :
 fi
 
 printf "\033[?25h"
