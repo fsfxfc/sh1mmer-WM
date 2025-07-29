@@ -156,7 +156,7 @@ write protection will not work as normal.
 <summary>Tsunami Bypass Details</summary>
 
 If your Chromebook is on version 114 or newer,
-unenrollment is still possible by [bridging two pins on the firmware chip](https://blog.darkn.bio/blog/the-tsunami#bypassing-instructions).
+unenrollment is still possible by [bridging two pins on the firmware chip](https://web.archive.org/web/20250424061912/https://blog.darkn.bio/blog/3-the-tsunami#bypassing-instructions) (internet archive is used because the domain was stolen and is now used for scams).
 On most devices, this will require you to take off the back of the Chromebook and then use a piece of tinfoil, wire, or other conductive material to bridge the two pins.
 This bypass is **not recommended** as you risk permanently bricking the Chromebook, please use [E-Halcyon](https://github.com/MercuryWorkshop/RecoMod) instead.
 
