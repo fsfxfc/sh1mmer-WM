@@ -53,7 +53,7 @@ This will build a beautiful world mini shim. If you want to add chromebrew, do t
 ```
 git clone https://github.com/MercuryWorkshop/sh1mmer
 cd sh1mmer/wax
-wget https://cdn.fanqyxl.net/assets/Chromebrew/chromebrew.tar.gz
+wget "https://web.archive.org/web/20230324140756id_/https://dl.sh1mmer.me/build-tools/chromebrew/chromebrew.tar.gz"
 sudo bash wax.sh -i path/to/the/shim/you/downloaded.bin --chromebrew chromebrew.tar.gz -s 4G
 ```
 
