@@ -8,7 +8,7 @@ SCRIPT_DIR=${SCRIPT_DIR:-"."}
 
 set -eE
 
-SCRIPT_DATE="[2025-07-29]"
+SCRIPT_DATE="[2025-08-03]"
 PAYLOAD_DIR=/mnt/sh1mmer/mounted_payloads
 RECOVERY_KEY_LIST="$SCRIPT_DIR"/short_recovery_keys.txt
 
@@ -81,7 +81,13 @@ cleanup() {
 }
 
 get_kernelver() {
-	set -- $(tpmc read 0x1008 9)
+	local tpmc_out
+	if ! tpmc_out=$(tpmc read 0x1008 9); then
+		# give up
+		printf "0x1"
+		return 0
+	fi
+	set -- $tpmc_out
 	local struct_version=$(printf "%d" "0x$1")
 	if [ $struct_version -lt 16 ]; then
 		shift 1
