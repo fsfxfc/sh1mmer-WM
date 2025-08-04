@@ -5,7 +5,7 @@ SCRIPT_DIR=${SCRIPT_DIR:-"."}
 
 set -eE
 
-SCRIPT_DATE="2024-11-10"
+SCRIPT_DATE="2025-07-22"
 
 echo "┌─────────────────────────────────────────────────────────────────┐"
 echo "│ Welcome to wax, a shim modifying automation tool                │"
@@ -94,6 +94,12 @@ patch_sh1mmer() {
 		cp -R "$FIRMWARE_DIR/"* "$MNT_SH1MMER/root/noarch/lib/firmware"
 	fi
 
+	if [ -n "$MOUNTED_PAYLOAD_DIR" ] && compgen -G "$MOUNTED_PAYLOAD_DIR/"* >/dev/null; then
+		log_info "Copying mounted payload"
+		mkdir -p "$MNT_SH1MMER/mounted_payloads"
+		cp -R "$MOUNTED_PAYLOAD_DIR/"* "$MNT_SH1MMER/mounted_payloads"
+	fi
+
 	if [ -n "$CHROMEBREW" ]; then
 		log_info "Extracting chromebrew... increase sh1mmer part size if this fails"
 		mkdir -p "$MNT_SH1MMER/chromebrew"
@@ -150,7 +156,9 @@ get_flags() {
 
 	DEFINE_string firmware_dir "${SCRIPT_DIR}/firmware" "Insert firmware from dir" ""
 
-	DEFINE_string chromebrew "" "Chromebrew payload" ""
+	DEFINE_string mounted_payload_dir "${SCRIPT_DIR}/mounted_payloads" "Mounted payload dir" "m"
+
+	DEFINE_string chromebrew "" "Chromebrew payload (mounted)" ""
 
 	DEFINE_string bootloader_dir "${SCRIPT_DIR}/bootstrap" "Path to bootloader data" ""
 
@@ -209,6 +217,12 @@ if [ -n "$FLAGS_firmware_dir" ]; then
 	FIRMWARE_DIR="$FLAGS_firmware_dir"
 	[ -d "$FIRMWARE_DIR" ] || fail "$FIRMWARE_DIR is not a directory"
 	log_info "Using firmware: $FIRMWARE_DIR"
+fi
+
+if [ -n "$FLAGS_mounted_payload_dir" ]; then
+	MOUNTED_PAYLOAD_DIR="$FLAGS_mounted_payload_dir"
+	[ -d "$MOUNTED_PAYLOAD_DIR" ] || fail "$MOUNTED_PAYLOAD_DIR is not a directory"
+	log_info "Using mounted payload: $MOUNTED_PAYLOAD_DIR"
 fi
 
 if [ -n "$FLAGS_chromebrew" ]; then

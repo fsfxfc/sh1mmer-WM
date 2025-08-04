@@ -23,8 +23,8 @@ We can edit the other partitions to our will as long as we remove the forced rea
 
 Here's how you do that.
 First, you need to know your Chromebook's board. Go to `chrome://version` on your Chromebook and copy the word after `stable-channel`.
-If `chrome://version` is blocked, you can search up your Chromebook's model name on [chrome100](https://chrome100.dev)
-and see what board it corresponds to. **DO NOT DOWNLOAD A RECOVERY IMAGE FROM [chrome100](https://chrome100.dev), IT WILL NOT WORK.**
+If `chrome://version` is blocked, you can search up your Chromebook's model name on [cros.download](https://cros.download/recovery)
+and see what board it corresponds to. **DO NOT USE WITH A RECOVERY IMAGE FROM [cros.download](https://cros.download/recovery), IT WILL NOT WORK.**
 
 If your board name is in the list below, great! Find the RAW RMA shim corresponding to your board online.
 We can no longer provide raw RMA shims due to legal reasons. [**More information here**](https://discord.gg/egWXwEDWKP).
@@ -81,8 +81,7 @@ sudo bash wax.sh -i path/to/the/shim/you/downloaded.bin -p legacy
 ```
 
 > [!NOTE]
-> Building a legacy shim will work on **ALL BOARDS.** Legacy shims are easier to update and are
-> recommended for advanced users and developers.
+> Legacy shims are easier to update and are recommended for advanced users and developers.
 
 When this finishes, the bin file in the path you provided will have been converted into a **SH1MMER** image.
 *Note that this is a destructive operation, you will need to redownload a fresh shim to try again if it fails.*
@@ -94,7 +93,7 @@ After injecting, you may continue to the "[Booting Into A Shim](#booting-into-a-
 ### Booting Into A Shim
 
 Once you have injected your raw shim with SH1MMER, go into the Chromebook Recovery Utility, select the settings icon (⚙️), select `Use local image`, and then select your injected shim.
-Alternatively, you can also use other flashers such as [BalenaEtcher](https://etcher.balena.io/), [Rufus](https://rufis.ie), [UNetbootin](https://unetbootin.github.io/), and etc.
+Alternatively, you can also use other flashers such as [Rufus](https://rufis.ie), [UNetbootin](https://unetbootin.github.io/), etc. On linux, `dd` is recommended.
 *This may take up to 10 minutes, depending on the size of your shim and speed of your USB drive.*
 
 On the Chromebook, press `ESC + Refresh (↻) + Power (⏻)` at the same time to enter the recovery screen, then press `CTRL + D` at the same time and press Enter.
@@ -109,56 +108,145 @@ From here, you can play around with the options and do what you want.
 > (skipping the "OS verification is OFF" screen).
 
 ***
-### Icarus
-SH1MMER and CryptoSmite have been patched by Google since v120, but since then a new unenrollment exploit for v125-v127 has released!
-By default, this is bundled inside payloads in all SH1MMER shims; and all you need to do is boot SH1MMER, go to the payloads menu, and run the "Icarus" payload.  
-**NOTE:** YOU WILL NEED TO SETUP A SERVER USING THE [Icarus repo](https://github.com/cosmicdevv/Icarus-Lite), AND FOLLOW THE STEPS TO CONNECT TO THE PROXY AFTER RUNNING THE PAYLOAD.  Original repo by Writable can be found [here](https://github.com/MunyDev/icarus), however it is no longer working due to expired certificates.  
-### CryptoSmite
-SH1MMER has been patched by Google since v111, but since then a new unenrollment exploit for v119 and lower has released: [CryptoSmite](https://github.com/FWSmasher/CryptoSmite).
-By default, this is bundled inside payloads in all SH1MMER shims; and all you need to do is boot SH1MMER, go to the payloads menu, and run the "Cryptosmite" payload.
+## Patch information and workarounds
+<details>
+
+### Patch for shims
+The patches at [crrev/c/4160496](https://crrev.com/c/4160496) and [crrev/c/4160815](https://crrev.com/c/4160815) enable rootfs verification on RMA shims.
 
 ### R111 patch ("The Fog")
-> [!NOTE]
-> It is recommended to use CryptoSmite instead if you're only affected by "_The Fog_" and nothing else.
-> "_The Fog_" instructions are old, however that doesn't mean you can't try it _**if**_ you don't wish to use CryptoSmite.
+The patch at [crrev/c/4241653](https://crrev.com/c/4241653) prevents FWMP from being modified from RMA shims on Cr50 devices.
+[crrev/c/4290246](https://crrev.com/c/4290246) also prevents the anti-rollback spaces from being modified from RMA shims when FWMP is present.  
+*Note that the above 2 were released in r114 for Ti50 devices.*  
+The patch at [crrev/c/4255465](https://crrev.com/c/4255465) forces an enrollment check when FWMP blocks developer mode.  
+The patch at [crrev/c/4234303](https://crrev.com/c/4234303) attempts to prevent `hana` and `elm` devices from entering developer+recovery mode, but it is trivial to bypass.
 
-Unenrollment via SH1MMER has been patched by Google on Cr50/Ti50 devices.
-If your Chromebook has never updated to version 112 (or newer) before (check in `chrome://version`),
-then you can ignore this and follow the normal instructions. If not, unenrollment will not work as normal.
+Additionally, the kernel anti-rollback version was incremented in this version.
+This means that once both the A and B partitions were at least at r111, the device could not be downgraded to older versions.
 
 <details>
-<summary>Fog Bypass Details</summary>
+<summary>"The Fog" Bypass Details</summary>
 
-If your Chromebook is on version 112 or 113, unenrollment is still possible if you're willing to [disable hardware write protection]("https://mrchromebox.tech/#devices).
-On most devices, this will require you to take off the back of the Chromebook and unplug the battery, or jump two pins.
+> [!NOTE]
+> It is recommended to use a different exploit instead if you're only affected by "_The Fog_" and nothing else.
+> "_The Fog_" instructions are old, however that doesn't mean you can't try it _**if**_ you also wish to disable hardware write protection.
+
+If your Chromebook has never updated to r114, unenrollment is still possible if you're willing to [disable hardware write protection](https://docs.mrchromebox.tech/docs/supported-devices.html).
+On most devices, this will require you to take off the back of the Chromebook and unplug the battery, or bridge two jumper pins.
 Further instructions are on [the website](https://sh1mmer.me/#fog).
 
-#### "Unenrolling" with Write Protection
-
+#### "Unenrolling" with write protection enabled
 If you aren't willing to take apart your Chromebook to unenroll, you can use an affiliated project,
-[E-Halcyon](https://github.com/MercuryWorkshop/RecoMod) to boot into an unenrolled environment temporarily.
+[E-Halcyon](https://github.com/MercuryWorkshop/RecoMod) (UNMAINTAINED) to boot into an unenrolled environment temporarily.
 This will bypass both issues of The Fog and The Tsunami, however further caveats are listed on the website.
+
+[Shimboot](https://github.com/ading2210/shimboot) is a modern alternative to E-Halcyon. It additionally supports booting a desktop linux environment.
 
 </details>
 
 ### R114 patch ("The Tsunami")
-
-> [!WARNING]
-> It is **_STRONGLY_** recommended to use CryptoSmite instead if you're on v119 or lower.
-> The instructions to bypass "_The Tsunami_" are potentially dangerous, even with a chip flasher. **Proceed with caution if you can't use CryptoSmite.**
-
-Disabling write protection has also been patched by Google on Cr50/Ti50 devices.
-If your Chromebook has never updated to version 114 (or newer) before (check in `chrome://version`),
-then you can ignore this and follow the [Unpatch](https://sh1mmer.me/#fog:~:text=v111) instructions. If not, disabling 
-write protection will not work as normal.
+The patch at [crrev/c/4367525](https://crrev.com/c/4367525) forces write protect to be enabled when FWMP blocks developer mode.
+On Ti50, it was released in r120.
 
 <details>
-<summary>Tsunami Bypass Details</summary>
+<summary>"The Tsunami" Bypass Details</summary>
+
+> [!WARNING]
+> It is **_STRONGLY_** recommended to use a different exploit if possible.
+> The instructions to bypass "_The Tsunami_" are potentially dangerous, even with a chip flasher. **Proceed with caution.**
 
 If your Chromebook is on version 114 or newer,
 unenrollment is still possible by [bridging two pins on the firmware chip](https://web.archive.org/web/20250424061912/https://blog.darkn.bio/blog/3-the-tsunami#bypassing-instructions) (internet archive is used because the domain was stolen and is now used for scams).
 On most devices, this will require you to take off the back of the Chromebook and then use a piece of tinfoil, wire, or other conductive material to bridge the two pins.
-This bypass is **not recommended** as you risk permanently bricking the Chromebook, please use [E-Halcyon](https://github.com/MercuryWorkshop/RecoMod) instead.
+This bypass is **not recommended** as you risk permanently bricking the Chromebook, so other methods should be used if available.
+
+</details>
+
+### Enrollment flow changes
+
+The patch at [crrev/c/5454834](https://crrev.com/c/5454834) (r125) enabled unified state determination for *some* devices.  
+The patch at [crrev/c/6309012](https://crrev.com/c/6309012) (r136) enabled unified state determination for all remaining devices.
+
+With unified state determination enabled, even removing FWMP won't prevent re-enrollment.
+Instead, the serial number or device secret should be changed, or it can temporarily be disabled in developer mode:
+
+<details>
+<summary>Bypass Details</summary>
+
+#### r125-r135:
+
+Powerwash, go to developer mode, enter VT2, and run these commands (make sure to type the `>` and `>>` exactly as you see them):
+```
+echo --enterprise-enable-unified-state-determination=never >/tmp/chrome_dev.conf
+echo --enterprise-enable-forced-re-enrollment=never >>/tmp/chrome_dev.conf
+echo --enterprise-enable-initial-enrollment=never >>/tmp/chrome_dev.conf
+mount --bind /tmp/chrome_dev.conf /etc/chrome_dev.conf
+initctl restart ui
+```
+Then switch out of VT2 and set up the device (don't reboot until you've finished setting it up).
+
+#### r136+
+
+Powerwash, go to developer mode, enter VT2, and run these commands:
+```
+echo --enterprise-enable-state-determination=never >/tmp/chrome_dev.conf
+mount --bind /tmp/chrome_dev.conf /etc/chrome_dev.conf
+initctl restart ui
+```
+Then switch out of VT2 and set up the device (don't reboot until you've finished setting it up).
+
+</details>
+
+</details>
+
+## Related projects
+<details>
+
+- [shimboot](https://github.com/ading2210/shimboot) - Boot a desktop Linux distribution from a Chrome OS RMA shim
+- <span style="color:grey">[RecoMod](https://github.com/MercuryWorkshop/RecoMod) - a cros recovery image modification toolkit (currently unmaintained)</span>
+- <span style="color:grey">[fakemurk](https://github.com/MercuryWorkshop/fakemurk) - a set of scripts for spoofing verified mode on an enrolled chromebook (unmaintained)</span>
+- <span style="color:grey">[terraOS](https://github.com/r58playz/terraos) - Boot Linux-based operating systems from a RMA shim (abandoned, use shimboot instead)</span>
+
+### CryptoSmite
+[GitHub](https://github.com/FWNavy/CryptoSmite)
+
+Patched by [crrev/c/5010266](https://crrev.com/c/5010266) (r120, r114 LTS).  
+Works on r119 (kernver 2) and lower.
+
+This is bundled inside payloads in all SH1MMER shims; and all you need to do is boot SH1MMER, go to the payloads menu, and run the "Cryptosmite" payload.
+
+### BadRecovery
+[GitHub](https://github.com/BinBashBanana/badrecovery)
+
+Patched by [crrev/c/5447828](https://crrev.com/c/5447828) (r125).  
+Works on kernver 3 and lower (device version independent).
+
+### Br1ck
+[GitHub](https://github.com/veebyte/br1ck)
+
+Patched by [crrev/c/6035435](https://crrev.com/c/6035435) (r132).  
+Works on r131 (kernver 4) and lower.
+
+### Icarus
+[GitHub](https://github.com/cosmicdevv/Icarus-Lite)
+
+Patched by [crrev/c/5805540](https://crrev.com/c/5805540) (r130).  
+Works on r129 (kernver 4) and lower.
+
+This is bundled inside payloads in all SH1MMER shims; and all you need to do is boot SH1MMER, go to the payloads menu, and run the "Icarus" payload.  
+> [!NOTE]
+> You will need to setup a server using the [Icarus repo](https://github.com/cosmicdevv/Icarus-Lite), and follow the steps to connect to the proxy after running the payload.
+> The original repo by Writable can be found [here](https://github.com/MunyDev/icarus), however it is no longer working due to expired certificates.
+
+### Br0ker
+No GitHub
+
+Patched by [crrev/c/6040974](https://crrev.com/c/6040974) (r133).  
+Works on r132 (kernver 5) and lower.
+
+This is bundled inside payloads in all SH1MMER shims; and all you need to do is boot SH1MMER, go to the payloads menu, and run the "Br0ker" payload.
+You can also bundle the update file with the shim to automatically downgrade the device to a vulnerable version, assuming it has a low enough kernel version.
+Instructions can be found at [wax/readme.br0ker.md](./wax/readme.br0ker.md)
 
 </details>
 

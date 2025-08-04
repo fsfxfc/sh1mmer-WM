@@ -9,7 +9,7 @@ WAX_OPTS=()
 [ -f "$SHARED_FS_MNT"/opt.fast ] && WAX_OPTS+=("--fast")
 [ -f "$SHARED_FS_MNT"/opt.debug ] && WAX_OPTS+=("--debug")
 
-if time ./wax.sh -i /dev/sda --finalsizefile "$SHARED_FS_MNT"/finalsize ${WAX_OPTS[@]}; then
+if time ./wax.sh -i /dev/sda --mounted_payload_dir="" --finalsizefile "$SHARED_FS_MNT"/finalsize ${WAX_OPTS[@]}; then
 	echo "Your shim has finished building"
 else
 	echo -e "An error occured\033[?25h"
