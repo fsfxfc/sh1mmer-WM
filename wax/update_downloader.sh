@@ -10,7 +10,7 @@ UPDATE_ENGINE="$SCRIPT_DIR/lib/update_engine"
 UPDATE_SOURCE="https://dl.google.com/chromeos"
 
 fail() {
-	printf "%s\n" "$*" >&2
+	printf "%b\n" "$*" >&2
 	exit 1
 }
 
