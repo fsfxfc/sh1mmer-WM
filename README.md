@@ -44,15 +44,15 @@ You need to be on Linux or WSL2 and have the following packages installed: `git`
 You may need to install additional packages, which the script will prompt you to do.
 
 ```
-git clone https://github.com/MercuryWorkshop/sh1mmer
-cd sh1mmer/wax
+git clone https://github.com/fsfxfc/sh1mmer-WM.git
+cd sh1mmer-WM/wax
 sudo bash wax.sh -i path/to/the/shim/you/downloaded.bin
 ```
 This will build a beautiful world mini shim. If you want to add chromebrew, do the following:
 
 ```
-git clone https://github.com/MercuryWorkshop/sh1mmer
-cd sh1mmer/wax
+git clone https://github.com/fsfxfc/sh1mmer-WM.git
+cd sh1mmer-WM/wax
 wget "https://web.archive.org/web/20230324140756id_/https://dl.sh1mmer.me/build-tools/chromebrew/chromebrew.tar.gz"
 sudo bash wax.sh -i path/to/the/shim/you/downloaded.bin --chromebrew chromebrew.tar.gz -s 4G
 ```
@@ -75,8 +75,8 @@ After injecting, you may continue to the "[Booting Into A Shim](#booting-into-a-
 Type out all of these commands in the terminal.
 
 ```
-git clone https://github.com/MercuryWorkshop/sh1mmer
-cd sh1mmer/wax
+git clone https://github.com/fsfxfc/sh1mmer-WM.git
+cd sh1mmer-WM/wax
 sudo bash wax.sh -i path/to/the/shim/you/downloaded.bin -p legacy
 ```
 
